@@ -1,0 +1,2 @@
+# fieldsimulation
+Simulation using OpenMP
