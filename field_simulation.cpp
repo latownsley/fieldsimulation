@@ -53,13 +53,14 @@ int main(int argc, char* argv[]) {
 	g_curr_year = 2026;
 	g_curr_num_rabbits = 100;
 	g_curr_height = 300.0;
+    bool error = false;
 
     // initialize with seed (random or from commandline)
-    int seed = std:: random_device{}();
+    unsigned int seed = std:: random_device{}();
     if (argc >= 2 ) {
-        seed = std::stoi(argv[1]);
+        seed = static_cast<unsigned int>(std::stoul(argv[1]));
     }
-    std::cout << seed;      // for testing purposes
+    std::cout << seed << "\n";      // for testing purposes
     std::mt19937 rng(seed);
 
     // calculate current enviormental parameters
@@ -78,7 +79,8 @@ int main(int argc, char* argv[]) {
             int id = omp_get_thread_num();
 
             if (id == 0) {
-                std::cout << "Error: Not enough threads.";
+                std::cerr << "Error: Not enough threads.\n";
+                error= true;
             }
 
         } 
@@ -122,7 +124,11 @@ int main(int argc, char* argv[]) {
         
     }
 
+    if (error) {
+        return 1;
+    }
     
+    return 0;
 }
 
 float Sqr(float x)
