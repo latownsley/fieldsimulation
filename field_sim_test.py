@@ -7,6 +7,9 @@ def compile_and_compare(cpp_file):
   # determine executable name
   if os.name == 'nt':  
     exe_file = os.path.splitext(cpp_file)[0] + '.exe'
+  else:
+    abs_source_path = os.path.abspath(cpp_file)
+    exe_file = os.path.splitext(abs_source_path)[0]
 
   # 1. Compile file
   print(f'Compiling {cpp_file}...')
@@ -17,10 +20,10 @@ def compile_and_compare(cpp_file):
   if compile_proc.returncode != 0:
     print('Compilation failed:')
     print(compile_proc.stderr)
-    exit("ERROR: COMPILE FAILURE!")
+    sys.exit(1)
     return
 
-  # 2. Run the executable twice
+  # 2. Run the executable three times (2 identical, 1 different control)
   print('Running program first time...')
   run1 = subprocess.run([exe_file, "12345"], timeout=30, capture_output=True, text=True)
 
@@ -28,15 +31,18 @@ def compile_and_compare(cpp_file):
   run2 = subprocess.run([exe_file, "12345"], timeout=30, capture_output=True, text=True)
 
   print('Running program third time...')
-  run3 = subprocess.run([exe_file], timeout=30, capture_output=True, text=True)
+  run3 = subprocess.run([exe_file, "54321"], timeout=30, capture_output=True, text=True)
 
   # 2 a. Error catching
   if run1.returncode != 0:
-    exit("Error ", run1.returncode, ": Issue with Run 1.")
+    print("Error ", run1.returncode, ": Issue with Run 1.")
+    sys.exit(1)
   if run2.returncode != 0:
-    exit("Error ", run2.returncode, ": Issue with Run 2.")
+    print("Error ", run2.returncode, ": Issue with Run 2.")
+    sys.exit(1)
   if run3.returncode != 0:
-    exit("Error ", run3.returncode, ": Issue with Run 3.")
+    print("Error ", run3.returncode, ": Issue with Run 3.")
+    sys.exit(1)
 
   # 3. Compare outputs
   out1 = run1.stdout.strip()
@@ -44,14 +50,15 @@ def compile_and_compare(cpp_file):
   out3 = run3.stdout.strip()
 
   if out1 == "":
-      exit("Error: No Output from Run 1.")
+      print("Error: No Output from Run 1.")
+      sys.exit(1)
   if out2 == "":
-      exit("Error: No Output from Run 2.")
+      print("Error: No Output from Run 2.")
+      sys.exit(1)
   if out3 == "":
-       exit("Error: No Output from Run 3.")
+       print("Error: No Output from Run 3.")
+       sys.exit(1)
 
-  if out1 == "":
-      exit("Error: No Output from Run 1.")
 
   # 4. Print results
 
@@ -64,10 +71,12 @@ def compile_and_compare(cpp_file):
     print(out1)
     print('\n--- Output 2 ---')
     print(out2)
+    sys.exit(1)
   if out1 != out3 != out2:
     print('Output 3 is DIFFERENT (as expected.)')
   else:
       print('Output 3 is the same.')
+      sys.exit(1)
 
 
 if __name__ == '__main__':
